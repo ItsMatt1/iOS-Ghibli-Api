@@ -71,12 +71,30 @@ struct FilmRowView: View {
     let film: Film
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(film.title)
-                .font(.headline)
-            Text("Ano: \(film.releaseDate)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        HStack(spacing: 12) {
+            // Thumbnail do filme
+            AsyncImageView(
+                urlString: film.image,
+                placeholder: Image(systemName: "film.fill")
+            )
+            .frame(width: 80, height: 120)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            )
+            
+            // Informações do filme
+            VStack(alignment: .leading, spacing: 8) {
+                Text(film.title)
+                    .font(.headline)
+                    .lineLimit(2)
+                Text("Ano: \(film.releaseDate)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
         }
         .padding(.vertical, 4)
     }

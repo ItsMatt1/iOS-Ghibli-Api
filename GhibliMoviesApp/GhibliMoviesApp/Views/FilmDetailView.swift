@@ -21,6 +21,21 @@ struct FilmDetailView: View {
             case .loaded(let film):
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
+                        // Banner do filme
+                        if let bannerURL = film.movieBanner ?? film.image {
+                            AsyncImageView(
+                                urlString: bannerURL,
+                                placeholder: Image(systemName: "photo.artframe")
+                            )
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                            )
+                        }
+                        
                         Text(film.title)
                             .font(.largeTitle)
                             .bold()
