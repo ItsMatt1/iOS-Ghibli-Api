@@ -12,51 +12,72 @@ struct FilmListView: View {
     
     var body: some View {
         NavigationStack {
-            Group {
-                switch viewModel.state {
-                case .loading:
-                    ProgressView("Carregando filmes...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    
-                case .loaded(let films):
-                    if films.isEmpty {
-                        VStack {
-                            Image(systemName: "film")
+            VStack(spacing: 0) {
+                // Barra de busca
+                if case .loaded = viewModel.state {
+                    SearchBar(text: $viewModel.searchText)
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
+                }
+                
+                // Conteúdo principal
+                Group {
+                    switch viewModel.state {
+                    case .loading:
+                        List(0..<5, id: \.self) { _ in
+                            FilmRowSkeletonView()
+                        }
+                        .disabled(true)
+                        
+                    case .loaded:
+                        let films = viewModel.filteredFilms
+                        if films.isEmpty {
+                            VStack(spacing: 16) {
+                                Image(systemName: viewModel.searchText.isEmpty ? "film" : "magnifyingglass")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.gray)
+                                Text(viewModel.searchText.isEmpty ? "Nenhum filme encontrado" : "Nenhum resultado encontrado")
+                                    .font(.headline)
+                                    .foregroundColor(.gray)
+                                if !viewModel.searchText.isEmpty {
+                                    Text("Tente buscar por outro termo")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else {
+                            List(films) { film in
+                                NavigationLink(destination: FilmDetailView(filmId: film.id)) {
+                                    FilmRowView(film: film)
+                                }
+                            }
+                            .refreshable {
+                                await viewModel.refreshFilms()
+                            }
+                        }
+                        
+                    case .error(let message):
+                        VStack(spacing: 16) {
+                            Image(systemName: "exclamationmark.triangle")
                                 .font(.system(size: 50))
+                                .foregroundColor(.red)
+                            Text("Erro ao carregar filmes")
+                                .font(.headline)
+                            Text(message)
+                                .font(.subheadline)
                                 .foregroundColor(.gray)
-                            Text("Nenhum filme encontrado")
-                                .foregroundColor(.gray)
-                                .padding(.top)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                            Button("Tentar novamente") {
+                                Task { @MainActor in
+                                    await viewModel.loadFilms()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        List(films) { film in
-                            NavigationLink(destination: FilmDetailView(filmId: film.id)) {
-                                FilmRowView(film: film)
-                            }
-                        }
                     }
-                    
-                case .error(let message):
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.system(size: 50))
-                            .foregroundColor(.red)
-                        Text("Erro ao carregar filmes")
-                            .font(.headline)
-                        Text(message)
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                        Button("Tentar novamente") {
-                            Task { @MainActor in
-                                await viewModel.loadFilms()
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .navigationTitle("Filmes Studio Ghibli")
@@ -64,6 +85,36 @@ struct FilmListView: View {
                 await viewModel.loadFilms()
             }
         }
+    }
+}
+
+struct SearchBar: View {
+    @Binding var text: String
+    @FocusState private var isFocused: Bool
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundColor(.gray)
+            
+            TextField("Buscar filmes...", text: $text)
+                .textFieldStyle(.plain)
+                .focused($isFocused)
+            
+            if !text.isEmpty {
+                Button(action: {
+                    text = ""
+                    isFocused = false
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.gray)
+                }
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color(.systemGray6))
+        .cornerRadius(10)
     }
 }
 
@@ -92,6 +143,24 @@ struct FilmRowView: View {
                 Text("Ano: \(film.releaseDate)")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+struct FilmRowSkeletonView: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            // Skeleton para thumbnail
+            SkeletonImageView(width: 80, height: 120)
+            
+            // Skeleton para informações
+            VStack(alignment: .leading, spacing: 8) {
+                SkeletonText(width: 200, height: 20)
+                SkeletonText(width: 100, height: 16)
             }
             
             Spacer()

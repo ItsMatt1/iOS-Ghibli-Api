@@ -15,6 +15,8 @@ struct AsyncImageView: View {
     @State private var isLoading = true
     @State private var hasError = false
     
+    private let imageCache = ImageCache.shared
+    
     init(urlString: String?, placeholder: Image = Image(systemName: "photo")) {
         self.urlString = urlString
         self.placeholder = placeholder
@@ -27,10 +29,7 @@ struct AsyncImageView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fill)
             } else if isLoading {
-                placeholder
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .foregroundColor(.gray.opacity(0.3))
+                SkeletonView()
             } else {
                 placeholder
                     .resizable()
@@ -52,12 +51,21 @@ struct AsyncImageView: View {
             return
         }
         
+        // Verificar cache primeiro
+        if let cachedImage = await imageCache.getImage(forKey: urlString) {
+            self.image = cachedImage
+            self.isLoading = false
+            return
+        }
+        
         isLoading = true
         hasError = false
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             if let uiImage = UIImage(data: data) {
+                // Salvar no cache
+                await imageCache.setImage(uiImage, forKey: urlString)
                 self.image = uiImage
                 self.isLoading = false
             } else {
