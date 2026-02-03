@@ -30,8 +30,8 @@ enum APIError: Error, LocalizedError {
     }
 }
 
-@MainActor
-class GhibliAPIService: ObservableObject {
+// Actor para operações de networking - isolamento de concorrência seguro
+actor GhibliAPIService {
     private let baseURL = "https://ghibliapi.vercel.app"
     private let session: URLSession
     

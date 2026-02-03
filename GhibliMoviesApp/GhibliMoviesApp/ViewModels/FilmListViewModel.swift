@@ -7,6 +7,7 @@
 
 import Foundation
 
+// Swift 6: ObservableObject tem Default Actor Isolation no MainActor
 @MainActor
 class FilmListViewModel: ObservableObject {
     @Published var state: ViewState<[Film]> = .loading
@@ -17,6 +18,7 @@ class FilmListViewModel: ObservableObject {
         state = .loading
         
         do {
+            // Chamada ao actor - automaticamente isolada
             let films = try await apiService.fetchFilms()
             state = .loaded(films)
         } catch {

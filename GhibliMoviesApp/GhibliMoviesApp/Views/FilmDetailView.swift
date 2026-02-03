@@ -55,7 +55,7 @@ struct FilmDetailView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                     Button("Tentar novamente") {
-                        Task {
+                        Task { @MainActor in
                             await viewModel.loadFilm(id: filmId)
                         }
                     }
