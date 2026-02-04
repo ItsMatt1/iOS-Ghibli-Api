@@ -7,6 +7,7 @@
 
 import Foundation
 
+// Enum de erros customizados para operações de API
 enum APIError: Error, LocalizedError {
     case invalidURL
     case invalidResponse
@@ -14,6 +15,7 @@ enum APIError: Error, LocalizedError {
     case decodingError(Error)
     case networkError(Error)
     
+    // Mensagens de erro localizadas em português
     var errorDescription: String? {
         switch self {
         case .invalidURL:
@@ -39,22 +41,27 @@ actor GhibliAPIService {
         self.session = session
     }
     
+    // Busca todos os filmes da API
     func fetchFilms() async throws -> [Film] {
         guard let url = URL(string: "\(baseURL)/films") else {
             throw APIError.invalidURL
         }
         
         do {
+            // Faz requisição HTTP
             let (data, response) = try await session.data(from: url)
             
+            // Valida resposta HTTP
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw APIError.invalidResponse
             }
             
+            // Verifica status code (200-299 = sucesso)
             guard (200...299).contains(httpResponse.statusCode) else {
                 throw APIError.httpError(statusCode: httpResponse.statusCode)
             }
             
+            // Decodifica JSON para array de Film
             do {
                 let films = try JSONDecoder().decode([Film].self, from: data)
                 return films
@@ -68,22 +75,27 @@ actor GhibliAPIService {
         }
     }
     
+    // Busca detalhes de um filme específico por ID
     func fetchFilm(id: String) async throws -> Film {
         guard let url = URL(string: "\(baseURL)/films/\(id)") else {
             throw APIError.invalidURL
         }
         
         do {
+            // Faz requisição HTTP
             let (data, response) = try await session.data(from: url)
             
+            // Valida resposta HTTP
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw APIError.invalidResponse
             }
             
+            // Verifica status code (200-299 = sucesso)
             guard (200...299).contains(httpResponse.statusCode) else {
                 throw APIError.httpError(statusCode: httpResponse.statusCode)
             }
             
+            // Decodifica JSON para Film
             do {
                 let film = try JSONDecoder().decode(Film.self, from: data)
                 return film

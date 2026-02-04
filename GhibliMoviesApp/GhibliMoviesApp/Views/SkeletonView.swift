@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// Componente de skeleton loading com animação shimmer
 struct SkeletonView: View {
     @State private var isAnimating = false
     
@@ -14,6 +15,7 @@ struct SkeletonView: View {
         GeometryReader { geometry in
             RoundedRectangle(cornerRadius: 8)
                 .fill(
+                    // Gradiente para efeito shimmer
                     LinearGradient(
                         colors: [
                             Color.gray.opacity(0.2),
@@ -24,6 +26,7 @@ struct SkeletonView: View {
                         endPoint: .trailing
                     )
                 )
+                // Animação de shimmer (desliza da esquerda para direita)
                 .offset(x: isAnimating ? geometry.size.width : -geometry.size.width)
                 .animation(
                     Animation.linear(duration: 1.5)
@@ -39,6 +42,7 @@ struct SkeletonView: View {
     }
 }
 
+// Skeleton específico para imagens
 struct SkeletonImageView: View {
     let width: CGFloat
     let height: CGFloat
@@ -49,6 +53,7 @@ struct SkeletonImageView: View {
     }
 }
 
+// Skeleton específico para texto
 struct SkeletonText: View {
     let width: CGFloat
     let height: CGFloat

@@ -14,13 +14,15 @@ class FilmListViewModel: ObservableObject {
     @Published var searchText: String = ""
     
     private let apiService = GhibliAPIService()
-    private var allFilms: [Film] = []
+    private var allFilms: [Film] = [] // Lista completa de filmes (antes do filtro)
     
+    // Computed property que filtra filmes baseado na busca
     var filteredFilms: [Film] {
         if searchText.isEmpty {
             return allFilms
         }
         
+        // Busca case-insensitive em múltiplos campos
         return allFilms.filter { film in
             film.title.localizedCaseInsensitiveContains(searchText) ||
             film.originalTitle.localizedCaseInsensitiveContains(searchText) ||
@@ -29,23 +31,25 @@ class FilmListViewModel: ObservableObject {
         }
     }
     
+    // Carrega lista de filmes da API
     func loadFilms() async {
         state = .loading
         
         do {
-            // Chamada ao actor - automaticamente isolada
+            // Chamada ao actor - automaticamente isolada (thread-safe)
             let films = try await apiService.fetchFilms()
             allFilms = films
             state = .loaded(films)
         } catch {
+            // Extrai mensagem de erro localizada
             let errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
             state = .error(errorMessage)
         }
     }
     
+    // Atualiza lista de filmes (usado no pull-to-refresh)
     func refreshFilms() async {
-        // Para pull-to-refresh, não mudamos o estado para loading
-        // para manter a lista visível durante o refresh
+        // Não muda estado para loading para manter lista visível durante refresh
         do {
             let films = try await apiService.fetchFilms()
             allFilms = films
@@ -55,13 +59,14 @@ class FilmListViewModel: ObservableObject {
             }
         } catch {
             // Em caso de erro durante refresh, mantém o estado atual
-            // mas poderia mostrar um toast ou alerta
+            // (poderia mostrar um toast ou alerta aqui)
         }
     }
 }
 
+// Enum genérico para representar estados da UI
 enum ViewState<T> {
-    case loading
-    case loaded(T)
-    case error(String)
+    case loading // Carregando dados
+    case loaded(T) // Dados carregados com sucesso
+    case error(String) // Erro com mensagem
 }

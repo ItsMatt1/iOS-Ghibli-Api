@@ -14,14 +14,16 @@ class FilmDetailViewModel: ObservableObject {
     
     private let apiService = GhibliAPIService()
     
+    // Carrega detalhes de um filme específico
     func loadFilm(id: String) async {
         state = .loading
         
         do {
-            // Chamada ao actor - automaticamente isolada
+            // Chamada ao actor - automaticamente isolada (thread-safe)
             let film = try await apiService.fetchFilm(id: id)
             state = .loaded(film)
         } catch {
+            // Extrai mensagem de erro localizada
             let errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
             state = .error(errorMessage)
         }

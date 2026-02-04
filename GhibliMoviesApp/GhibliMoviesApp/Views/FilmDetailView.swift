@@ -15,13 +15,15 @@ struct FilmDetailView: View {
         Group {
             switch viewModel.state {
             case .loading:
+                // Indicador de carregamento
                 ProgressView("Carregando detalhes...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
             case .loaded(let film):
+                // ScrollView com detalhes do filme
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        // Banner do filme
+                        // Banner do filme (usa movieBanner ou image como fallback)
                         if let bannerURL = film.movieBanner ?? film.image {
                             AsyncImageView(
                                 urlString: bannerURL,
@@ -42,12 +44,14 @@ struct FilmDetailView: View {
                         
                         Divider()
                         
+                        // Informações principais do filme
                         DetailRow(label: "Ano de Lançamento", value: film.releaseDate)
                         DetailRow(label: "Diretor", value: film.director)
                         DetailRow(label: "Produtor", value: film.producer)
                         
                         Divider()
                         
+                        // Descrição completa
                         Text("Descrição")
                             .font(.headline)
                         Text(film.description)
@@ -58,6 +62,7 @@ struct FilmDetailView: View {
                 }
                 
             case .error(let message):
+                // Estado de erro com opção de retry
                 VStack(spacing: 16) {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 50))
@@ -80,12 +85,14 @@ struct FilmDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        // Carrega detalhes quando a view aparece
         .task {
             await viewModel.loadFilm(id: filmId)
         }
     }
 }
 
+// Componente reutilizável para exibir label e valor
 struct DetailRow: View {
     let label: String
     let value: String

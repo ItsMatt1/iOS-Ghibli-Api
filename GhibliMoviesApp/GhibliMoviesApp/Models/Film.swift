@@ -7,6 +7,7 @@
 
 import Foundation
 
+// Modelo de dados do filme da API Studio Ghibli
 struct Film: Codable, Identifiable {
     let id: String
     let title: String
@@ -18,9 +19,10 @@ struct Film: Codable, Identifiable {
     let releaseDate: String
     let runningTime: String
     let rtScore: String
-    let image: String?
-    let movieBanner: String?
+    let image: String? // URL da imagem thumbnail
+    let movieBanner: String? // URL do banner do filme
     
+    // Mapeamento de snake_case (API) para camelCase (Swift)
     enum CodingKeys: String, CodingKey {
         case id
         case title

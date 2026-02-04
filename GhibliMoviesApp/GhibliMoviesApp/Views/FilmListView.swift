@@ -13,17 +13,18 @@ struct FilmListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Barra de busca
+                // Barra de busca (só aparece quando dados estão carregados)
                 if case .loaded = viewModel.state {
                     SearchBar(text: $viewModel.searchText)
                         .padding(.horizontal)
                         .padding(.vertical, 8)
                 }
                 
-                // Conteúdo principal
+                // Conteúdo principal baseado no estado
                 Group {
                     switch viewModel.state {
                     case .loading:
+                        // Skeleton loading durante carregamento inicial
                         List(0..<5, id: \.self) { _ in
                             FilmRowSkeletonView()
                         }
@@ -32,6 +33,7 @@ struct FilmListView: View {
                     case .loaded:
                         let films = viewModel.filteredFilms
                         if films.isEmpty {
+                            // Estado vazio (sem filmes ou sem resultados da busca)
                             VStack(spacing: 16) {
                                 Image(systemName: viewModel.searchText.isEmpty ? "film" : "magnifyingglass")
                                     .font(.system(size: 50))
@@ -47,6 +49,7 @@ struct FilmListView: View {
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else {
+                            // Lista de filmes com pull-to-refresh
                             List(films) { film in
                                 NavigationLink(destination: FilmDetailView(filmId: film.id)) {
                                     FilmRowView(film: film)
@@ -58,6 +61,7 @@ struct FilmListView: View {
                         }
                         
                     case .error(let message):
+                        // Estado de erro com opção de retry
                         VStack(spacing: 16) {
                             Image(systemName: "exclamationmark.triangle")
                                 .font(.system(size: 50))
@@ -81,6 +85,7 @@ struct FilmListView: View {
                 }
             }
             .navigationTitle("Filmes Studio Ghibli")
+            // Carrega filmes quando a view aparece
             .task {
                 await viewModel.loadFilms()
             }
@@ -88,6 +93,7 @@ struct FilmListView: View {
     }
 }
 
+// Componente de barra de busca customizada
 struct SearchBar: View {
     @Binding var text: String
     @FocusState private var isFocused: Bool
@@ -101,6 +107,7 @@ struct SearchBar: View {
                 .textFieldStyle(.plain)
                 .focused($isFocused)
             
+            // Botão para limpar busca
             if !text.isEmpty {
                 Button(action: {
                     text = ""
@@ -118,12 +125,13 @@ struct SearchBar: View {
     }
 }
 
+// View de uma linha na lista de filmes
 struct FilmRowView: View {
     let film: Film
     
     var body: some View {
         HStack(spacing: 12) {
-            // Thumbnail do filme
+            // Thumbnail do filme (carregamento assíncrono)
             AsyncImageView(
                 urlString: film.image,
                 placeholder: Image(systemName: "film.fill")
@@ -151,13 +159,14 @@ struct FilmRowView: View {
     }
 }
 
+// View de skeleton para linha de filme durante carregamento
 struct FilmRowSkeletonView: View {
     var body: some View {
         HStack(spacing: 12) {
             // Skeleton para thumbnail
             SkeletonImageView(width: 80, height: 120)
             
-            // Skeleton para informações
+            // Skeleton para informações do filme
             VStack(alignment: .leading, spacing: 8) {
                 SkeletonText(width: 200, height: 20)
                 SkeletonText(width: 100, height: 16)

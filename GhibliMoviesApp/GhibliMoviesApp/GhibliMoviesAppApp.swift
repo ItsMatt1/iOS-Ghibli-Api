@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// Entry point da aplicação
 @main
 struct GhibliMoviesAppApp: App {
     var body: some Scene {

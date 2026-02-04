@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+// View principal que inicializa a lista de filmes
 struct ContentView: View {
     var body: some View {
         FilmListView()
